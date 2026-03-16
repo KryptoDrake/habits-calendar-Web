@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Habits Calendar - Backup Viewer</title>
+<style>
+  :root {
+    --bg: #0D0D0D;
+    --surface: #1A1A1A;
+    --surface-light: #252525;
+    --text: #FFFFFF;
+    --text-secondary: #8E8E93;
+    --accent: #00D4AA;
+    --accent-secondary: #FF6B35;
+    --success: #30D158;
+    --error: #FF453A;
+    --border: #2C2C2E;
+    --overlay: rgba(0,0,0,0.7);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-top: env(safe-area-inset-top, 16px);
+    padding-bottom: env(safe-area-inset-bottom, 24px);
+  }
+
+  /* Setup Screen */
+  .setup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    gap: 16px;
+    padding: 24px;
+  }
+
+  .setup h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .setup p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.5;
+    max-width: 350px;
+  }
+
+  .setup input {
+    width: 100%;
+    max-width: 350px;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .setup input:focus {
+    border-color: var(--accent);
+  }
+
+  .setup input::placeholder {
+    color: var(--text-secondary);
+  }
+
+  .setup label {
+    color: var(--text-secondary);
+    font-size: 13px;
+    width: 100%;
+    max-width: 350px;
+    text-align: left;
+    margin-top: 8px;
+    margin-bottom: -8px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 14px 32px;
+    border-radius: var(--radius-md);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    width: 100%;
+    max-width: 350px;
+    margin-top: 8px;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .error-msg {
+    color: var(--error);
+    font-size: 13px;
+    text-align: center;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 8px 0;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 28px;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+  }
+
+  .h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .refresh-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    transition: background 0.2s;
+  }
+
+  .refresh-btn:hover { background: var(--surface); }
+
+  .header-meta {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-bottom: 16px;
+    margin-top: -8px;
+  }
+
+  /* Overview Screen */
+  .smart-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .smart-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .smart-card:hover { background: var(--surface-light); }
+  .smart-card:active { border-color: var(--accent); }
+
+  .smart-icon { font-size: 24px; }
+
+  .smart-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 11px;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--accent);
+    color: #000;
+    align-self: flex-start;
+  }
+
+  .badge-muted {
+    background: var(--surface-light);
+    color: var(--text-secondary);
+  }
+
+  .badge-sm {
+    min-width: 20px;
+    height: 20px;
+    font-size: 12px;
+    padding: 0 6px;
+  }
+
+  /* List Cards */
+  .section-title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 20px 0 10px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+  }
+
+  .list-card {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 8px;
+  }
+
+  .list-card:hover { background: var(--surface-light); }
+
+  .list-card-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .list-icon { font-size: 18px; }
+  .list-title { font-size: 16px; font-weight: 500; }
+
+  /* Todo Items */
+  .todo-card {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+    transition: background 0.15s;
+  }
+
+  .todo-card:hover { background: var(--surface-light); }
+
+  .todo-card.overdue {
+    border-left: 3px solid var(--error);
+  }
+
+  .todo-card.completed-card {
+    opacity: 0.5;
+  }
+
+  .checkbox {
+    width: 22px;
+    height: 22px;
+    border-radius: 11px;
+    border: 2px solid var(--text-secondary);
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .checkbox.checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .checkbox.checked::after {
+    content: '\2713';
+    color: #000;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .todo-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .todo-title-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .flag-icon { font-size: 14px; }
+  .priority-icon {
+    color: var(--error);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .todo-title {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+
+  .todo-done {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+  }
+
+  .todo-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .todo-meta {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .todo-meta.overdue-text {
+    color: var(--error);
+  }
+
+  .no-date-badge {
+    background: var(--surface-light);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .subtask-info {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  .subtask-list {
+    margin-top: 6px;
+    padding-left: 4px;
+  }
+
+  .subtask-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+  }
+
+  .subtask-check {
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    border: 1.5px solid var(--text-secondary);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  .subtask-check.checked {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+  }
+
+  .subtask-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .subtask-text.done {
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+
+  /* Collapsible Sections */
+  .collapse-toggle {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 12px 0;
+    text-align: left;
+    width: 100%;
+  }
+
+  .collapse-toggle.accent {
+    color: var(--accent);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-secondary);
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-title { font-size: 16px; font-weight: 500; }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 48px;
+    color: var(--text-secondary);
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--surface-light);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Notes */
+  .todo-notes {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    font-style: italic;
+    white-space: pre-wrap;
+    line-height: 1.4;
+  }
+
+  /* Settings button */
+  .settings-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .settings-btn:hover { color: var(--text); }
+
+  /* Readonly banner */
+  .readonly-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+  }
+
+  /* Tabs for detail view */
+  .detail-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .detail-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 0;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .detail-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<div class="container" id="app"></div>
+
+<script>
+// ============ Profiles ============
+const PROFILES = {
+  musa: {
+    name: 'Musa',
+    token: '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',
+    gistId: '7af0c8eb9cc770420d642d1248f97b25'
+  },
+  melissa: {
+    name: 'Melissa',
+    token: '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',
+    gistId: '477ab5308849f1f9c2f2ea33d737c545'
+  }
+};
+
+// ============ State ============
+let activeProfile = localStorage.getItem('hc_profile') || '';
+let gistToken = '';
+let gistId = '';
+let backupData = null;
+let currentScreen = activeProfile ? 'overview' : 'profile'; // 'profile' | 'overview' | 'today' | 'scheduled' | 'list'
+let currentListId = null;
+let selectedDate = todayKey();
+let showCompleted = false;
+let showLater = false;
+let showNoDate = false;
+
+// ============ Helpers ============
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function tomorrowKey() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function laterCutoffDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + 7);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function parseKey(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+}
+
+function whenLabel(t) {
+  if (!t.date || t.date.trim() === '') {
+    return t.time ? `Kein Datum ${t.time}` : 'Kein Datum';
+  }
+  const dt = parseKey(t.date);
+  const today = todayKey();
+  const tomorrow = tomorrowKey();
+  let base;
+  if (t.date === today) base = 'Heute';
+  else if (t.date === tomorrow) base = 'Morgen';
+  else base = dt.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+  return t.time ? `${base} ${t.time}` : base;
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function sortTodos(todos) {
+  return [...todos].sort((a, b) => {
+    if (a.date !== b.date) return (a.date || '').localeCompare(b.date || '');
+    if (a.time && !b.time) return -1;
+    if (!a.time && b.time) return 1;
+    if (a.time && b.time && a.time !== b.time) return a.time.localeCompare(b.time);
+    if ((a.flagged ?? false) !== (b.flagged ?? false)) return (b.flagged ? 1 : 0) - (a.flagged ? 1 : 0);
+    const po = { high: 0, medium: 1, low: 2, none: 3 };
+    return (po[a.priority ?? 'none']) - (po[b.priority ?? 'none']);
+  });
+}
+
+// ============ Data ============
+async function fetchBackup() {
+  const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+    headers: {
+      'Authorization': `token ${gistToken}`,
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  });
+  if (!res.ok) throw new Error(`GitHub API: ${res.status} ${res.statusText}`);
+  const gist = await res.json();
+  const file = gist.files['habits-calendar-backup.json'];
+  if (!file) throw new Error('Backup-Datei nicht im Gist gefunden');
+  return JSON.parse(file.content);
+}
+
+// ============ Render ============
+function selectProfile(key) {
+  const p = PROFILES[key];
+  activeProfile = key;
+  gistToken = p.token;
+  gistId = p.gistId;
+  localStorage.setItem('hc_profile', key);
+  backupData = null;
+  currentScreen = 'overview';
+  render();
+}
+
+function switchProfile() {
+  // Direkt zum anderen Profil wechseln
+  const other = activeProfile === 'musa' ? 'melissa' : 'musa';
+  selectProfile(other);
+}
+
+function renderProfileSelect(app) {
+  app.innerHTML = `
+    <div class="setup">
+      <h1>Wer bist du?</h1>
+      <p>Wähle dein Profil, um dein Backup zu laden.</p>
+      <button class="btn-primary" style="margin-top:16px" onclick="selectProfile('musa')">Musa</button>
+      <button class="btn-primary" style="background:var(--accent-secondary)" onclick="selectProfile('melissa')">Melissa</button>
+    </div>
+  `;
+}
+
+function render() {
+  const app = document.getElementById('app');
+  if (currentScreen === 'profile' || !activeProfile) {
+    renderProfileSelect(app);
+    return;
+  }
+  // Ensure token/gistId are set from profile
+  if (!gistToken || !gistId) {
+    const p = PROFILES[activeProfile];
+    if (!p) { switchProfile(); return; }
+    gistToken = p.token;
+    gistId = p.gistId;
+  }
+  if (!backupData) {
+    renderLoading(app);
+  } else if (currentScreen === 'overview') {
+    renderOverview(app);
+  } else if (currentScreen === 'today') {
+    renderTodayView(app);
+  } else if (currentScreen === 'scheduled') {
+    renderScheduledView(app);
+  } else if (currentScreen === 'list') {
+    renderListView(app);
+  }
+}
+
+function renderSetup(app) {
+  app.innerHTML = `
+    <div class="setup">
+      <h1>Backup Viewer</h1>
+      <p>Gib deinen GitHub Gist Token und die Gist-ID ein, um dein Backup zu laden. Die Daten werden lokal im Browser gespeichert.</p>
+      <label>GitHub Token (Personal Access Token)</label>
+      <input type="password" id="token-input" placeholder="ghp_..." value="${escapeHtml(gistToken)}">
+      <label>Gist ID</label>
+      <input type="text" id="gist-input" placeholder="z.B. 477ab5308849f1f9c2f2ea33d737c545" value="${escapeHtml(gistId)}">
+      <div id="setup-error" class="error-msg"></div>
+      <button class="btn-primary" id="connect-btn">Verbinden</button>
+    </div>
+  `;
+  document.getElementById('connect-btn').onclick = async () => {
+    const token = document.getElementById('token-input').value.trim();
+    const id = document.getElementById('gist-input').value.trim();
+    if (!token || !id) {
+      document.getElementById('setup-error').textContent = 'Bitte beide Felder ausfuellen.';
+      return;
+    }
+    const btn = document.getElementById('connect-btn');
+    btn.disabled = true;
+    btn.textContent = 'Verbinde...';
+    try {
+      gistToken = token;
+      gistId = id;
+      backupData = await fetchBackup();
+      localStorage.setItem('hc_gist_token', token);
+      localStorage.setItem('hc_gist_id', id);
+      render();
+    } catch (e) {
+      document.getElementById('setup-error').textContent = 'Fehler: ' + e.message;
+      btn.disabled = false;
+      btn.textContent = 'Verbinden';
+    }
+  };
+}
+
+function renderLoading(app) {
+  app.innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <div>Backup wird geladen...</div>
+    </div>
+  `;
+  fetchBackup().then(data => {
+    backupData = data;
+    render();
+  }).catch(e => {
+    // Token might be invalid, reset
+    app.innerHTML = `
+      <div class="loading">
+        <div style="color:var(--error);margin-bottom:16px">Fehler: ${escapeHtml(e.message)}</div>
+        <button class="btn-primary" style="max-width:200px;margin:0 auto" onclick="localStorage.clear();gistToken='';gistId='';render()">Neu einrichten</button>
+      </div>
+    `;
+  });
+}
+
+function getActiveTodos() {
+  return (backupData?.data?.todos || []).filter(t => !t.deletedAt);
+}
+
+function getListById() {
+  const map = {};
+  for (const l of (backupData?.data?.todoLists || [])) map[l.id] = l;
+  return map;
+}
+
+function renderHeader(title, showBack = false) {
+  const exportedAt = backupData?.exportedAt ? new Date(backupData.exportedAt).toLocaleString('de-DE') : '?';
+  return `
+    <div class="header">
+      <div class="header-left">
+        ${showBack ? `<button class="back-btn" onclick="currentScreen='overview';render()">&#8249;</button>` : ''}
+        <span class="h1">${escapeHtml(title)}</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="refresh-btn" onclick="reloadBackup()" title="Neu laden">&#x21bb;</button>
+        <span style="font-size:13px;font-weight:600;color:var(--accent);margin-right:4px">${PROFILES[activeProfile]?.name}</span>
+        <button class="settings-btn" onclick="switchProfile()" title="Profil wechseln" style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:var(--radius-sm)">wechseln</button>
+      </div>
+    </div>
+    <div class="header-meta">${PROFILES[activeProfile]?.name || '?'} &middot; Nur Lesen &middot; Backup vom ${exportedAt}</div>
+  `;
+}
+
+async function reloadBackup() {
+  const app = document.getElementById('app');
+  app.innerHTML = `<div class="loading"><div class="spinner"></div><div>Aktualisiere...</div></div>`;
+  try {
+    backupData = await fetchBackup();
+    render();
+  } catch (e) {
+    app.innerHTML = `<div class="loading"><div style="color:var(--error)">Fehler: ${escapeHtml(e.message)}</div></div>`;
+    setTimeout(render, 2000);
+  }
+}
+
+function renderOverview(app) {
+  const todos = getActiveTodos();
+  const lists = backupData?.data?.todoLists || [];
+  const listById = getListById();
+
+  const today = todayKey();
+  const todayCount = todos.filter(t => !t.done && t.date && t.date <= today).length;
+  const scheduledCount = todos.filter(t => !t.done && (t.date !== today || !!t.time || !t.date || t.date.trim() === '')).length;
+
+  const openCountByList = {};
+  for (const t of todos) {
+    if (t.done) continue;
+    openCountByList[t.listId] = (openCountByList[t.listId] ?? 0) + 1;
+  }
+
+  let listsHtml = lists.map(l => {
+    const count = openCountByList[l.id] ?? 0;
+    return `
+      <div class="list-card" onclick="currentListId='${l.id}';currentScreen='list';render()">
+        <div class="list-card-content">
+          <span class="list-icon">&#x1F4CB;</span>
+          <span class="list-title">${escapeHtml(l.title)}</span>
+        </div>
+        ${count > 0 ? `<span class="badge badge-sm">${count}</span>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  app.innerHTML = `
+    ${renderHeader('Plan')}
+    <div class="readonly-banner">Nur-Lesen-Ansicht deines Backups</div>
+    <div class="smart-row">
+      <div class="smart-card" onclick="currentScreen='today';render()">
+        <span class="smart-icon">&#x2600;&#xFE0F;</span>
+        <span class="smart-title">Heute</span>
+        ${todayCount > 0 ? `<span class="badge">${todayCount}</span>` : `<span class="badge badge-muted">0</span>`}
+      </div>
+      <div class="smart-card" onclick="currentScreen='scheduled';selectedDate=todayKey();render()">
+        <span class="smart-icon">&#x1F4C5;</span>
+        <span class="smart-title">Geplant</span>
+        ${scheduledCount > 0 ? `<span class="badge badge-muted">${scheduledCount}</span>` : `<span class="badge badge-muted">0</span>`}
+      </div>
+    </div>
+    <div class="section-title-row">
+      <span class="section-title">Meine Listen</span>
+    </div>
+    ${listsHtml || '<div class="empty-state"><div class="empty-title">Keine Listen</div></div>'}
+  `;
+}
+
+function renderTodoItem(t, listById, showListName = true) {
+  const listName = listById[t.listId]?.title ?? 'Liste';
+  const priorityIcon = t.priority === 'high' ? '!!!' : t.priority === 'medium' ? '!!' : t.priority === 'low' ? '!' : '';
+  const subtaskCount = t.subtasks?.length ?? 0;
+  const subtaskDone = t.subtasks?.filter(s => s.done).length ?? 0;
+  const isDateless = !t.date || t.date.trim() === '';
+  const isOverdue = !t.done && t.date && t.date < todayKey();
+
+  let subtasksHtml = '';
+  if (t.subtasks && t.subtasks.length > 0) {
+    subtasksHtml = `<div class="subtask-list">${t.subtasks.map(s => `
+      <div class="subtask-item">
+        <div class="subtask-check ${s.done ? 'checked' : ''}">${s.done ? '&#10003;' : ''}</div>
+        <span class="subtask-text ${s.done ? 'done' : ''}">${escapeHtml(s.title)}</span>
+      </div>
+    `).join('')}</div>`;
+  }
+
+  let notesHtml = '';
+  if (t.notes && t.notes.trim()) {
+    notesHtml = `<div class="todo-notes">${escapeHtml(t.notes)}</div>`;
+  }
+
+  return `
+    <div class="todo-card ${isOverdue ? 'overdue' : ''} ${t.done ? 'completed-card' : ''}">
+      <div class="checkbox ${t.done ? 'checked' : ''}"></div>
+      <div class="todo-content">
+        <div class="todo-title-row">
+          ${t.flagged ? '<span class="flag-icon">&#x1F6A9;</span>' : ''}
+          ${priorityIcon ? `<span class="priority-icon">${priorityIcon}</span>` : ''}
+          <span class="todo-title ${t.done ? 'todo-done' : ''}">${escapeHtml(t.title || 'Neues To-Do')}</span>
+        </div>
+        <div class="todo-meta-row">
+          ${isDateless
+            ? `<span class="no-date-badge">Kein Datum</span>`
+            : `<span class="todo-meta ${isOverdue ? 'overdue-text' : ''}">${whenLabel(t)}</span>`}
+          ${showListName ? `<span class="todo-meta"> &middot; ${escapeHtml(listName)}</span>` : ''}
+          ${subtaskCount > 0 ? `<span class="todo-meta"> &middot; ${subtaskDone}/${subtaskCount}</span>` : ''}
+        </div>
+        ${notesHtml}
+        ${subtasksHtml}
+      </div>
+    </div>
+  `;
+}
+
+function renderTodayView(app) {
+  const todos = getActiveTodos();
+  const listById = getListById();
+  const today = todayKey();
+  const cutoff = laterCutoffDate();
+
+  // Overdue + today
+  const overdue = todos.filter(t => t.date && t.date < today && !t.done);
+  const todayTodos = todos.filter(t => t.date === today);
+  const allView = [...overdue, ...todayTodos];
+
+  const pending = allView.filter(t => !t.done && t.date && t.date.trim() !== '' && t.date < cutoff);
+  const dateless = allView.filter(t => !t.done && (!t.date || t.date.trim() === ''));
+  const later = allView.filter(t => !t.done && t.date && t.date.trim() !== '' && t.date >= cutoff);
+  const completed = allView.filter(t => t.done);
+
+  const sorted = sortTodos([...pending, ...dateless]);
+
+  let html = renderHeader('Heute', true);
+
+  if (sorted.length === 0 && completed.length === 0 && later.length === 0) {
+    html += `<div class="empty-state"><div class="empty-icon">&#x2713;</div><div class="empty-title">Keine To-Dos fuer heute</div></div>`;
+  } else {
+    html += sorted.map(t => renderTodoItem(t, listById)).join('');
+
+    if (later.length > 0) {
+      html += `<button class="collapse-toggle" onclick="showLater=!showLater;render()">
+        ${showLater ? '&#x25BC;' : '&#x25B6;'} Spaeter (${later.length})
+      </button>`;
+      if (showLater) html += sortTodos(later).map(t => renderTodoItem(t, listById)).join('');
+    }
+
+    if (completed.length > 0) {
+      html += `<button class="collapse-toggle" onclick="showCompleted=!showCompleted;render()">
+        ${showCompleted ? '&#x25BC;' : '&#x25B6;'} Erledigt (${completed.length})
+      </button>`;
+      if (showCompleted) html += completed.map(t => renderTodoItem(t, listById)).join('');
+    }
+  }
+
+  app.innerHTML = html;
+}
+
+function renderScheduledView(app) {
+  const todos = getActiveTodos();
+  const listById = getListById();
+
+  // Build calendar
+  const sel = parseKey(selectedDate);
+  const year = sel.getFullYear();
+  const month = sel.getMonth();
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  let startWeekday = firstDay.getDay();
+  if (startWeekday === 0) startWeekday = 7; // Mo=1
+
+  // Count todos per date
+  const countByDate = {};
+  for (const t of todos) {
+    if (t.done || !t.date) continue;
+    countByDate[t.date] = (countByDate[t.date] ?? 0) + 1;
+  }
+
+  const monthNames = ['Januar','Februar','Maerz','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const dayNames = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+  let calHtml = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <button class="back-btn" style="font-size:20px" onclick="navigateMonth(-1)">&#x25C0;</button>
+      <span style="font-weight:600;font-size:16px">${monthNames[month]} ${year}</span>
+      <button class="back-btn" style="font-size:20px" onclick="navigateMonth(1)">&#x25B6;</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;margin-bottom:16px">
+      ${dayNames.map(d => `<div style="font-size:12px;color:var(--text-secondary);padding:4px">${d}</div>`).join('')}
+  `;
+
+  // Empty cells before first day
+  for (let i = 1; i < startWeekday; i++) {
+    calHtml += `<div></div>`;
+  }
+
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const key = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = key === todayKey();
+    const isSelected = key === selectedDate;
+    const count = countByDate[key] ?? 0;
+    const hasTodos = count > 0;
+
+    let style = 'padding:6px 2px;border-radius:8px;cursor:pointer;font-size:14px;position:relative;';
+    if (isSelected) style += `background:var(--accent);color:#000;font-weight:600;`;
+    else if (isToday) style += `border:1px solid var(--accent);`;
+
+    calHtml += `<div style="${style}" onclick="selectedDate='${key}';render()">
+      ${d}
+      ${hasTodos && !isSelected ? `<div style="width:4px;height:4px;background:var(--accent);border-radius:50%;margin:2px auto 0"></div>` : ''}
+      ${hasTodos && isSelected ? `<div style="width:4px;height:4px;background:#000;border-radius:50%;margin:2px auto 0"></div>` : ''}
+    </div>`;
+  }
+
+  calHtml += `</div>`;
+
+  // Todos for selected date
+  const dayTodos = todos.filter(t => t.date === selectedDate);
+  const pendingDay = sortTodos(dayTodos.filter(t => !t.done));
+  const completedDay = dayTodos.filter(t => t.done);
+
+  // No-date todos
+  const noDateTodos = todos.filter(t => !t.done && (!t.date || t.date.trim() === ''));
+
+  const selectedDateLabel = parseKey(selectedDate).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  let html = renderHeader('Geplant', true);
+  html += calHtml;
+  html += `<div style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;font-weight:500">${selectedDateLabel}</div>`;
+
+  if (pendingDay.length === 0 && completedDay.length === 0) {
+    html += `<div class="empty-state"><div class="empty-icon">&#x2713;</div><div class="empty-title">Keine To-Dos</div></div>`;
+  } else {
+    html += pendingDay.map(t => renderTodoItem(t, listById)).join('');
+
+    if (completedDay.length > 0) {
+      html += `<button class="collapse-toggle" onclick="showCompleted=!showCompleted;render()">
+        ${showCompleted ? '&#x25BC;' : '&#x25B6;'} Erledigt (${completedDay.length})
+      </button>`;
+      if (showCompleted) html += completedDay.map(t => renderTodoItem(t, listById)).join('');
+    }
+  }
+
+  if (noDateTodos.length > 0) {
+    html += `<button class="collapse-toggle accent" onclick="showNoDate=!showNoDate;render()">
+      ${showNoDate ? '&#x25BC;' : '&#x25B6;'} Ohne Datum (${noDateTodos.length})
+    </button>`;
+    if (showNoDate) html += noDateTodos.map(t => renderTodoItem(t, listById)).join('');
+  }
+
+  app.innerHTML = html;
+}
+
+// Calendar navigation
+function navigateMonth(delta) {
+  const d = parseKey(selectedDate);
+  d.setMonth(d.getMonth() + delta);
+  d.setDate(1);
+  selectedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  render();
+}
+
+function renderListView(app) {
+  const todos = getActiveTodos();
+  const listById = getListById();
+  const list = listById[currentListId];
+  const cutoff = laterCutoffDate();
+
+  if (!list) {
+    currentScreen = 'overview';
+    render();
+    return;
+  }
+
+  const listTodos = todos.filter(t => t.listId === currentListId);
+  const pending = listTodos.filter(t => !t.done && t.date && t.date.trim() !== '' && t.date < cutoff);
+  const dateless = listTodos.filter(t => !t.done && (!t.date || t.date.trim() === ''));
+  const later = listTodos.filter(t => !t.done && t.date && t.date.trim() !== '' && t.date >= cutoff);
+  const completed = listTodos.filter(t => t.done);
+
+  const sorted = sortTodos([...pending, ...dateless]);
+
+  let html = renderHeader(list.title, true);
+
+  if (sorted.length === 0 && completed.length === 0 && later.length === 0) {
+    html += `<div class="empty-state"><div class="empty-icon">&#x2713;</div><div class="empty-title">Keine To-Dos</div></div>`;
+  } else {
+    html += sorted.map(t => renderTodoItem(t, listById, false)).join('');
+
+    if (later.length > 0) {
+      html += `<button class="collapse-toggle" onclick="showLater=!showLater;render()">
+        ${showLater ? '&#x25BC;' : '&#x25B6;'} Spaeter (${later.length})
+      </button>`;
+      if (showLater) html += sortTodos(later).map(t => renderTodoItem(t, listById, false)).join('');
+    }
+
+    if (completed.length > 0) {
+      html += `<button class="collapse-toggle" onclick="showCompleted=!showCompleted;render()">
+        ${showCompleted ? '&#x25BC;' : '&#x25B6;'} Erledigt (${completed.length})
+      </button>`;
+      if (showCompleted) html += completed.map(t => renderTodoItem(t, listById, false)).join('');
+    }
+  }
+
+  app.innerHTML = html;
+}
+
+// ============ Init ============
+render();
+</script>
+</body>
+</html>
