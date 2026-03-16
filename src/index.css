@@ -2,18 +2,18 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #050509;
-  --surface: rgba(255,255,255,0.035);
-  --surface-hover: rgba(255,255,255,0.065);
-  --surface-border: rgba(255,255,255,0.06);
-  --surface-glow: rgba(255,255,255,0.08);
+  --bg: #0a0a12;
+  --surface: rgba(255,255,255,0.06);
+  --surface-hover: rgba(255,255,255,0.10);
+  --surface-border: rgba(255,255,255,0.10);
+  --surface-glow: rgba(255,255,255,0.12);
   --accent: #2dd4bf;
-  --accent-dim: rgba(45,212,191,0.12);
-  --accent-glow: rgba(45,212,191,0.25);
+  --accent-dim: rgba(45,212,191,0.15);
+  --accent-glow: rgba(45,212,191,0.30);
   --accent-strong: rgba(45,212,191,0.5);
   --text: #f2f2f8;
-  --text-secondary: #7a7a9a;
-  --text-tertiary: #3d3d58;
+  --text-secondary: #9a9ab8;
+  --text-tertiary: #5a5a78;
   --success: #4ade80;
   --warning: #fbbf24;
   --error: #f87171;
@@ -89,7 +89,7 @@ body {
 /* ===== GLASS CARD ===== */
 .g-card {
   position: relative;
-  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
   border-radius: var(--radius);
   padding: 16px;
   overflow: hidden;
@@ -97,21 +97,21 @@ body {
 }
 .g-card::before {
   content: ''; position: absolute; inset: 0; border-radius: var(--radius); padding: 1px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02), rgba(255,255,255,0.05));
+  background: linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04), rgba(255,255,255,0.08));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
   pointer-events: none;
 }
 .g-card:hover {
-  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.025) 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.05) 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.10);
 }
 
 /* Small radius variant */
 .g-card-sm {
   position: relative;
-  background: linear-gradient(135deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.012) 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.025) 100%);
   border-radius: var(--radius-sm);
   padding: 14px 16px;
   overflow: hidden;
@@ -119,13 +119,13 @@ body {
 }
 .g-card-sm::before {
   content: ''; position: absolute; inset: 0; border-radius: var(--radius-sm); padding: 1px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+  background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
   pointer-events: none;
 }
 .g-card-sm:hover {
-  background: linear-gradient(135deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.025) 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.04) 100%);
   transform: translateX(4px);
   box-shadow: 0 4px 24px rgba(0,0,0,0.2);
 }
@@ -338,12 +338,12 @@ body {
 /* ===== STAT CARD ===== */
 .stat-card {
   text-align: center; padding: 16px 10px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
   border-radius: var(--radius-sm); position: relative; overflow: hidden;
 }
 .stat-card::before {
   content: ''; position: absolute; inset: 0; border-radius: var(--radius-sm); padding: 1px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+  background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
 }
@@ -394,6 +394,74 @@ body {
 }
 
 /* ===== LINE CLAMP ===== */
+/* ===== RESPONSIVE GRIDS ===== */
+.dashboard-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (min-width: 768px) {
+  .dashboard-cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.habits-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+@media (min-width: 768px) {
+  .habits-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.todos-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+@media (min-width: 768px) {
+  .todos-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.calendar-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+@media (min-width: 768px) {
+  .calendar-layout {
+    flex-direction: row;
+    gap: 32px;
+  }
+  .calendar-layout > :first-child {
+    flex: 0 0 380px;
+  }
+  .calendar-layout > :last-child {
+    flex: 1;
+  }
+}
+
+.recipes-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+@media (min-width: 768px) {
+  .recipes-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (min-width: 1024px) {
+  .recipes-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -413,9 +481,9 @@ body {
 
 /* ===== GLASS HEADER ===== */
 .glass-header {
-  background: linear-gradient(180deg, var(--bg) 0%, rgba(5,5,9,0.95) 100%);
+  background: linear-gradient(180deg, var(--bg) 0%, rgba(10,10,18,0.95) 100%);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 /* ===== SHOPPING ITEM ===== */

@@ -88,21 +88,45 @@ export default function Layout() {
       <div className="noise-overlay" />
 
       {/* Header */}
-      <header className="glass-header sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+      <header className="glass-header sticky top-0 z-50 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-lg font-black tracking-tight gradient-text">
             Habits Calendar
           </span>
           <span
             className="text-xs px-2.5 py-1 rounded-full font-semibold"
-            style={{
-              background: 'var(--accent-dim)',
-              color: 'var(--accent)',
-            }}
+            style={{ background: 'var(--accent-dim)', color: 'var(--accent)' }}
           >
             {user?.name}
           </span>
         </div>
+
+        {/* Desktop: Tabs im Header */}
+        <div className="hidden md:flex items-center gap-1">
+          {tabs.map(tab => {
+            const Icon = tab.icon
+            const isActive = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '8px 14px', borderRadius: '12px',
+                  background: isActive ? 'var(--accent-dim)' : 'transparent',
+                  color: isActive ? 'var(--accent)' : 'var(--text-tertiary)',
+                  border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                  fontSize: '13px', fontWeight: isActive ? 700 : 500,
+                  transition: 'all 0.3s',
+                }}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+
         <div className="flex items-center gap-1">
           {lastSync && (
             <span className="text-xs hidden sm:block mr-2" style={{ color: 'var(--text-tertiary)' }}>
@@ -142,8 +166,8 @@ export default function Layout() {
       </div>
 
       {/* Content */}
-      <main className="relative z-10 pb-24">
-        <div className="max-w-lg mx-auto px-4 py-4">
+      <main className="relative z-10 pb-24 md:pb-8">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 md:py-6">
           <div key={activeTab} className="screen-enter">
             {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
             {activeTab === 'todos' && <TodosView />}
@@ -154,8 +178,8 @@ export default function Layout() {
         </div>
       </main>
 
-      {/* Glassmorphism Tab Bar */}
-      <nav className="glass-tabbar">
+      {/* Mobile: Bottom Tab Bar */}
+      <nav className="glass-tabbar md:hidden">
         {tabs.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id

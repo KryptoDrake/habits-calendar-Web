@@ -211,7 +211,7 @@ export default function TodosView() {
 
       {/* Todos */}
       {showTodos.length > 0 ? (
-        <div>
+        <div className="todos-grid">
           {showTodos.map(t => (
             <TodoRow key={t.id} todo={t} listName={listById[t.listId]?.title} />
           ))}

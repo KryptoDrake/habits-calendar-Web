@@ -66,6 +66,10 @@ export default function CalendarView() {
         </h1>
       </div>
 
+      <div className="calendar-layout">
+      {/* Left: Calendar */}
+      <div>
+
       {/* Month Navigation */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
         <button
@@ -136,10 +140,10 @@ export default function CalendarView() {
         })}
       </div>
 
-      {/* Selected Day Details */}
-      <div style={{
-        borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '16px', marginTop: '8px',
-      }}>
+      </div>{/* end left */}
+
+      {/* Right: Selected Day Details */}
+      <div>
         <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '12px' }}>
           {selectedLabel}
         </div>
@@ -216,7 +220,8 @@ export default function CalendarView() {
             <p style={{ fontSize: '13px' }}>Keine Einträge</p>
           </div>
         ) : null}
-      </div>
+      </div>{/* end right */}
+      </div>{/* end calendar-layout */}
     </div>
   )
 }

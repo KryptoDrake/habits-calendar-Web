@@ -171,7 +171,7 @@ export default function HabitsView() {
       {habitsForToday.length > 0 && (
         <div>
           <div className="section-label">Heute</div>
-          {habitsForToday.map(renderHabit)}
+          <div className="habits-grid">{habitsForToday.map(renderHabit)}</div>
         </div>
       )}
 
@@ -179,7 +179,7 @@ export default function HabitsView() {
       {otherHabits.length > 0 && (
         <div>
           <div className="section-label">Andere Tage</div>
-          {otherHabits.map(renderHabit)}
+          <div className="habits-grid">{otherHabits.map(renderHabit)}</div>
         </div>
       )}
 

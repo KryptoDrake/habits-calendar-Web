@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(node:*)",
+      "Bash(npm create:*)",
+      "Bash(cp:*)",
+      "Bash(npm install:*)",
+      "Bash(rm:*)",
+      "Bash(npx vite:*)",
+      "Bash(git init:*)",
+      "Bash(npx tsc:*)",
+      "Bash(echo:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(gh run:*)"
+    ]
+  }
+}

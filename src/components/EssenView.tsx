@@ -344,7 +344,9 @@ export default function EssenView() {
 
           {/* Recipes */}
           {recipes.length > 0 ? (
-            recipes.map(r => <RecipeCard key={r.id} recipe={r} />)
+            <div className="recipes-grid">
+              {recipes.map(r => <RecipeCard key={r.id} recipe={r} />)}
+            </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-tertiary)' }}>
               <div style={{ fontSize: '40px', marginBottom: '12px' }}>{'\u{1F468}\u200D\u{1F373}'}</div>

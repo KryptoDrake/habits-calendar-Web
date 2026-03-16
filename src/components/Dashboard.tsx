@@ -128,7 +128,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (tab: Tab) => vo
       )}
 
       {/* Quick Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+      <div className="dashboard-cards-grid">
         <div className="g-card" onClick={() => onNavigate('todos')} style={{ cursor: 'pointer' }}>
           <div className="card-glow" />
           <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
