@@ -132,13 +132,21 @@ export default function TodosView() {
   const { data } = useData()
   const [selectedList, setSelectedList] = useState<string | null>(null)
   const [showCompleted, setShowCompleted] = useState(false)
-  const [view, setView] = useState<'today' | 'all'>('today')
+  const [showNoDate, setShowNoDate] = useState(false)
+  const [view, setView] = useState<'today' | 'later' | 'all'>('today')
 
   if (!data) return null
 
   const today = todayKey()
   const activeTodos = data.todos.filter(t => !t.deletedAt)
   const listById = Object.fromEntries(data.todoLists.map(l => [l.id, l]))
+
+  // Cutoff: 7 Tage ab heute
+  const cutoffDate = (() => {
+    const d = new Date()
+    d.setDate(d.getDate() + 7)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })()
 
   let filtered = activeTodos
   if (selectedList) {
@@ -147,13 +155,16 @@ export default function TodosView() {
 
   const overdue = filtered.filter(t => !t.done && t.date && t.date < today)
   const todayTodos = filtered.filter(t => !t.done && t.date === today)
-  const upcoming = filtered.filter(t => !t.done && t.date && t.date > today)
+  const soonTodos = filtered.filter(t => !t.done && t.date && t.date > today && t.date < cutoffDate)
+  const laterTodos = filtered.filter(t => !t.done && t.date && t.date >= cutoffDate)
   const noDate = filtered.filter(t => !t.done && (!t.date || t.date.trim() === ''))
   const completed = filtered.filter(t => t.done)
 
   const showTodos = view === 'today'
-    ? sortTodos([...overdue, ...todayTodos])
-    : sortTodos([...overdue, ...todayTodos, ...upcoming, ...noDate])
+    ? sortTodos([...overdue, ...todayTodos, ...soonTodos])
+    : view === 'later'
+      ? sortTodos(laterTodos)
+      : sortTodos([...overdue, ...todayTodos, ...soonTodos, ...laterTodos, ...noDate])
 
   return (
     <div className="stagger-container" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -167,7 +178,13 @@ export default function TodosView() {
             className={`glass-pill ${view === 'today' ? 'active' : ''}`}
             onClick={() => setView('today')}
           >
-            Heute
+            Heute {overdue.length + todayTodos.length + soonTodos.length > 0 ? `(${overdue.length + todayTodos.length + soonTodos.length})` : ''}
+          </button>
+          <button
+            className={`glass-pill ${view === 'later' ? 'active' : ''}`}
+            onClick={() => setView('later')}
+          >
+            Später {laterTodos.length > 0 ? `(${laterTodos.length})` : ''}
           </button>
           <button
             className={`glass-pill ${view === 'all' ? 'active' : ''}`}
@@ -220,6 +237,30 @@ export default function TodosView() {
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-tertiary)' }}>
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>{'\u2705'}</div>
           <p style={{ fontSize: '14px' }}>Keine To-Dos{view === 'today' ? ' für heute' : ''}</p>
+        </div>
+      )}
+
+      {/* Ohne Datum */}
+      {noDate.length > 0 && view !== 'all' && (
+        <div>
+          <button
+            onClick={() => setShowNoDate(!showNoDate)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--accent)', fontSize: '13px', fontWeight: 600,
+              padding: '12px 0', display: 'flex', alignItems: 'center', gap: '8px',
+              fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            {showNoDate ? '\u25BC' : '\u25B6'} Ohne Datum ({noDate.length})
+          </button>
+          {showNoDate && (
+            <div className="todos-grid">
+              {noDate.map(t => (
+                <TodoRow key={t.id} todo={t} listName={listById[t.listId]?.title} />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
