@@ -19,10 +19,10 @@ import {
 type Tab = 'dashboard' | 'todos' | 'calendar' | 'habits' | 'essen'
 
 const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
-  { id: 'dashboard', label: 'Heute', icon: LayoutDashboard },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'habits', label: 'Tracker', icon: Target },
   { id: 'todos', label: 'Plan', icon: CheckSquare },
   { id: 'calendar', label: 'Kalender', icon: Calendar },
-  { id: 'habits', label: 'Tracker', icon: Target },
   { id: 'essen', label: 'Küche', icon: UtensilsCrossed },
 ]
 
@@ -38,16 +38,8 @@ export default function Layout() {
         <div className="ambient-blob blob-2" />
         <div className="noise-overlay" />
         <div className="text-center space-y-4 relative z-10">
-          <div
-            className="w-12 h-12 rounded-full mx-auto"
-            style={{
-              border: '3px solid var(--text-tertiary)',
-              borderTopColor: 'var(--accent)',
-              animation: 'spin 0.8s linear infinite',
-            }}
-          />
+          <div className="loading-spinner" />
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Daten werden geladen...</p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </div>
     )
@@ -63,13 +55,7 @@ export default function Layout() {
           <button onClick={reload} className="accent-btn" style={{ maxWidth: '200px', margin: '0 auto' }}>
             Erneut versuchen
           </button>
-          <button
-            onClick={logout}
-            style={{
-              display: 'block', margin: '0 auto', background: 'none', border: 'none',
-              color: 'var(--text-secondary)', fontSize: '13px', cursor: 'pointer',
-            }}
-          >
+          <button onClick={logout} style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '13px', cursor: 'pointer' }}>
             Ausloggen
           </button>
         </div>
@@ -81,120 +67,132 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen relative">
-      {/* Ambient blobs */}
       <div className="ambient-blob blob-1" />
       <div className="ambient-blob blob-2" />
       <div className="ambient-blob blob-3" />
       <div className="noise-overlay" />
 
-      {/* Header */}
-      <header className="glass-header sticky top-0 z-50 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-lg font-black tracking-tight gradient-text">
-            Habits Calendar
-          </span>
-          <span
-            className="text-xs px-2.5 py-1 rounded-full font-semibold"
-            style={{ background: 'var(--accent-dim)', color: 'var(--accent)' }}
-          >
-            {user?.name}
-          </span>
-        </div>
+      {/* ===== DESKTOP: Sidebar + Content ===== */}
+      <div className="desktop-layout">
+        {/* Sidebar */}
+        <aside className="desktop-sidebar">
+          <div className="sidebar-inner">
+            {/* Logo */}
+            <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '-0.5px' }} className="gradient-text">
+                Habits Calendar
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                Backup &middot; Nur-Lesen
+              </div>
+            </div>
 
-        {/* Desktop: Tabs im Header */}
-        <div className="hidden md:flex items-center gap-1">
+            {/* User */}
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '12px',
+                background: 'linear-gradient(135deg, var(--accent), #14b8a6)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '14px', fontWeight: 800, color: '#000',
+              }}>
+                {user?.name?.charAt(0)}
+              </div>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 700 }}>{user?.name}</div>
+                <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
+                  {lastSync ? lastSync.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}
+                </div>
+              </div>
+            </div>
+
+            {/* Nav */}
+            <nav style={{ padding: '12px 10px', flex: 1 }}>
+              {tabs.map(tab => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+                  >
+                    <Icon className="w-[18px] h-[18px]" />
+                    <span>{tab.label}</span>
+                  </button>
+                )
+              })}
+            </nav>
+
+            {/* Footer */}
+            <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', gap: '4px' }}>
+              <button onClick={reload} className="sidebar-action-btn" title="Neu laden">
+                <RefreshCw className="w-4 h-4" />
+              </button>
+              <button onClick={logout} className="sidebar-action-btn" title="Ausloggen">
+                <LogOut className="w-4 h-4" />
+              </button>
+              <div style={{ flex: 1, textAlign: 'right', fontSize: '10px', color: 'var(--text-tertiary)', alignSelf: 'center' }}>
+                Backup vom {new Date(data.exportedAt).toLocaleDateString('de-DE')}
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="desktop-main">
+          <div key={activeTab} className="screen-enter">
+            {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
+            {activeTab === 'habits' && <HabitsView />}
+            {activeTab === 'todos' && <TodosView />}
+            {activeTab === 'calendar' && <CalendarView />}
+            {activeTab === 'essen' && <EssenView />}
+          </div>
+        </main>
+      </div>
+
+      {/* ===== MOBILE: Bottom Tabs ===== */}
+      <div className="mobile-layout">
+        {/* Mobile Header */}
+        <header className="glass-header sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-black tracking-tight gradient-text">Habits Calendar</span>
+            <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '8px', background: 'var(--accent-dim)', color: 'var(--accent)', fontWeight: 700 }}>
+              {user?.name}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={reload} style={{ color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            <button onClick={logout} style={{ color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
+
+        <main className="relative z-10 pb-24 px-4 py-4">
+          <div key={activeTab} className="screen-enter">
+            {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
+            {activeTab === 'habits' && <HabitsView />}
+            {activeTab === 'todos' && <TodosView />}
+            {activeTab === 'calendar' && <CalendarView />}
+            {activeTab === 'essen' && <EssenView />}
+          </div>
+        </main>
+
+        <nav className="glass-tabbar">
           {tabs.map(tab => {
             const Icon = tab.icon
             const isActive = activeTab === tab.id
             return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '8px 14px', borderRadius: '12px',
-                  background: isActive ? 'var(--accent-dim)' : 'transparent',
-                  color: isActive ? 'var(--accent)' : 'var(--text-tertiary)',
-                  border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-                  fontSize: '13px', fontWeight: isActive ? 700 : 500,
-                  transition: 'all 0.3s',
-                }}
-              >
-                <Icon className="w-4 h-4" />
-                {tab.label}
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`glass-tab ${isActive ? 'active' : ''}`}>
+                <Icon className="w-6 h-6 tab-icon" />
+                <span className="tab-label">{tab.label}</span>
               </button>
             )
           })}
-        </div>
-
-        <div className="flex items-center gap-1">
-          {lastSync && (
-            <span className="text-xs hidden sm:block mr-2" style={{ color: 'var(--text-tertiary)' }}>
-              {lastSync.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          )}
-          <button
-            onClick={reload}
-            className="p-2 rounded-xl transition-colors"
-            style={{ color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer' }}
-            title="Neu laden"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          <button
-            onClick={logout}
-            className="p-2 rounded-xl transition-colors"
-            style={{ color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer' }}
-            title="Ausloggen"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-      </header>
-
-      {/* Readonly banner */}
-      <div
-        className="text-center py-1.5"
-        style={{
-          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.02), transparent)',
-          borderBottom: '1px solid rgba(255,255,255,0.03)',
-        }}
-      >
-        <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontWeight: 500 }}>
-          Nur-Lesen &middot; Backup vom {new Date(data.exportedAt).toLocaleString('de-DE')}
-        </span>
+        </nav>
       </div>
-
-      {/* Content */}
-      <main className="relative z-10 pb-24 md:pb-8">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 md:py-6">
-          <div key={activeTab} className="screen-enter">
-            {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
-            {activeTab === 'todos' && <TodosView />}
-            {activeTab === 'calendar' && <CalendarView />}
-            {activeTab === 'habits' && <HabitsView />}
-            {activeTab === 'essen' && <EssenView />}
-          </div>
-        </div>
-      </main>
-
-      {/* Mobile: Bottom Tab Bar */}
-      <nav className="glass-tabbar md:hidden">
-        {tabs.map(tab => {
-          const Icon = tab.icon
-          const isActive = activeTab === tab.id
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`glass-tab ${isActive ? 'active' : ''}`}
-            >
-              <Icon className="w-6 h-6 tab-icon" />
-              <span className="tab-label">{tab.label}</span>
-            </button>
-          )
-        })}
-      </nav>
     </div>
   )
 }
