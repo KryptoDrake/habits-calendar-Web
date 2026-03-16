@@ -109,10 +109,12 @@ export function logout() {
   localStorage.removeItem(STORAGE_KEY_PROFILE)
 }
 
-// ============ Konsolen-Helfer für Hash-Generierung ============
-// @ts-expect-error - global helper
-window.__hashCode = async (code: string) => {
-  const hash = await hashCode(code)
-  console.log(`Hash für "${code}": ${hash}`)
-  return hash
+// ============ Konsolen-Helfer (nur Development) ============
+if (import.meta.env.DEV) {
+  // @ts-expect-error - global helper
+  window.__hashCode = async (code: string) => {
+    const hash = await hashCode(code)
+    console.log(`Hash für "${code}": ${hash}`)
+    return hash
+  }
 }
