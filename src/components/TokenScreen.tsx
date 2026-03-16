@@ -11,8 +11,8 @@ export default function TokenScreen() {
 
   const handleSave = async () => {
     const t = tokenInput.trim()
-    if (!t || !t.startsWith('ghp_')) {
-      setError('Bitte einen gültigen GitHub Token eingeben (beginnt mit ghp_).')
+    if (!t || t.length < 10) {
+      setError('Bitte einen gültigen GitHub Token eingeben.')
       return
     }
     setSaving(true)
