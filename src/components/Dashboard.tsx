@@ -19,9 +19,9 @@ function ProgressRing({ progress, size = 80, stroke = 6, color = 'var(--accent)'
   )
 }
 
-function ActivityHeatmap({ habits }: { habits: typeof import('../lib/types').Habit[] }) {
+function ActivityHeatmap({ habits }: { habits: { days: number[]; doneDates: string[] }[] }) {
   const weeks = 12
-  const cells = []
+  const cells: { key: string; count: number; dayOfWeek: number }[] = []
   for (let i = weeks * 7 - 1; i >= 0; i--) {
     const d = new Date()
     d.setDate(d.getDate() - i)
