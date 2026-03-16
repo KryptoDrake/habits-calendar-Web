@@ -1,6 +1,5 @@
 import { useData } from '../contexts/DataContext'
-import { todayKey, getStreakForHabit, getDayName } from '../lib/helpers'
-import type { Habit } from '../lib/types'
+import { todayKey, getStreakForHabit } from '../lib/helpers'
 
 type Tab = 'dashboard' | 'todos' | 'calendar' | 'habits' | 'essen'
 

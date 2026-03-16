@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useData } from '../contexts/DataContext'
-import { todayKey, parseKey, getMonthName, getDayName } from '../lib/helpers'
+import { todayKey, parseKey, getMonthName } from '../lib/helpers'
 
 export default function CalendarView() {
   const { data } = useData()
