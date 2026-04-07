@@ -7,7 +7,7 @@ const PROFILES: Record<string, UserProfile & { codeHash: string }> = {
   musa: {
     id: 'musa',
     name: 'Musa',
-    gistId: '7af0c8eb9cc770420d642d1248f97b25',
+    gistId: '187fe31f4ab10ee08fd6372f8881fffe',
     codeHash: '',
   },
   melissa: {
