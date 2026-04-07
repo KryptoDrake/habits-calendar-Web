@@ -1,10 +1,18 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useData } from '../contexts/DataContext'
 import { getMealTypeLabel, getDifficultyLabel } from '../lib/helpers'
-import type { Recipe, ShoppingItem, MealPlan } from '../lib/types'
-import { Search } from 'lucide-react'
+import type { Recipe, ShoppingItem, MealPlan, MealType } from '../lib/types'
+import { Search, Sunrise, Sun, Moon, Coffee, FileText, ChevronDown, ChevronRight } from 'lucide-react'
 
 type SubTab = 'rezepte' | 'einkaufen' | 'speiseplan'
+
+const MEAL_TYPE_CONFIG: { type: MealType | 'sonstige'; label: string; icon: typeof Sunrise; color: string }[] = [
+  { type: 'fruehstueck', label: 'Frühstück', icon: Sunrise, color: 'var(--orange)' },
+  { type: 'mittagessen', label: 'Mittagessen', icon: Sun, color: 'var(--warning)' },
+  { type: 'abendessen', label: 'Abendessen', icon: Moon, color: 'var(--purple)' },
+  { type: 'snack', label: 'Snack', icon: Coffee, color: 'var(--accent)' },
+  { type: 'sonstige', label: 'Sonstige', icon: FileText, color: 'var(--text-tertiary)' },
+]
 
 function RecipeCard({ recipe }: { recipe: Recipe }) {
   const [expanded, setExpanded] = useState(false)
@@ -263,6 +271,12 @@ export default function EssenView() {
 
   if (!data) return null
 
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
+
+  const toggleGroup = (type: string) => {
+    setCollapsedGroups(prev => ({ ...prev, [type]: !prev[type] }))
+  }
+
   let recipes = data.recipes
   if (category !== 'alle') {
     recipes = recipes.filter(r => r.category === category)
@@ -276,6 +290,24 @@ export default function EssenView() {
     )
   }
   recipes = [...recipes].sort((a, b) => a.title.localeCompare(b.title))
+
+  const groupedRecipes = useMemo(() => {
+    const groups: Record<string, Recipe[]> = {
+      fruehstueck: [], mittagessen: [], abendessen: [], snack: [], sonstige: [],
+    }
+    recipes.forEach(recipe => {
+      if (recipe.mealTypes && recipe.mealTypes.length > 0) {
+        recipe.mealTypes.forEach(type => {
+          if (groups[type]) groups[type].push(recipe)
+        })
+      } else {
+        groups.sonstige.push(recipe)
+      }
+    })
+    return MEAL_TYPE_CONFIG
+      .map(config => ({ ...config, recipes: groups[config.type] }))
+      .filter(g => g.recipes.length > 0)
+  }, [recipes])
 
   return (
     <div className="stagger-container" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -342,10 +374,48 @@ export default function EssenView() {
             ))}
           </div>
 
-          {/* Recipes */}
-          {recipes.length > 0 ? (
-            <div className="recipes-grid">
-              {recipes.map(r => <RecipeCard key={r.id} recipe={r} />)}
+          {/* Grouped Recipes */}
+          {groupedRecipes.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {groupedRecipes.map(group => {
+                const Icon = group.icon
+                const isCollapsed = collapsedGroups[group.type] ?? false
+                return (
+                  <div key={group.type}>
+                    <button
+                      onClick={() => toggleGroup(group.type)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '10px', width: '100%',
+                        padding: '10px 14px', borderRadius: '14px', cursor: 'pointer',
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      <Icon className="w-4 h-4" style={{ color: group.color, flexShrink: 0 }} />
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)', flex: 1, textAlign: 'left' }}>
+                        {group.label}
+                      </span>
+                      <span style={{
+                        fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '8px',
+                        background: `color-mix(in srgb, ${group.color} 15%, transparent)`,
+                        color: group.color,
+                      }}>
+                        {group.recipes.length}
+                      </span>
+                      {isCollapsed
+                        ? <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
+                        : <ChevronDown className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
+                      }
+                    </button>
+                    {!isCollapsed && (
+                      <div className="recipes-grid" style={{ marginTop: '8px' }}>
+                        {group.recipes.map(r => <RecipeCard key={r.id} recipe={r} />)}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-tertiary)' }}>
