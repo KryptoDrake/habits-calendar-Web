@@ -6,6 +6,7 @@ import {
   login as authLogin,
   logout as authLogout,
   saveInitialToken,
+  setGistIdOverride,
 } from '../lib/auth'
 
 interface AuthState {
@@ -17,6 +18,7 @@ interface AuthState {
   logout: () => void
   submitToken: (token: string) => Promise<boolean>
   changeToken: () => void
+  updateGistId: (gistId: string) => void
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -64,6 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user])
 
+  const updateGistId = useCallback((gistId: string) => {
+    if (!user) return
+    setGistIdOverride(user.id, gistId)
+    setUser({ ...user, gistId })
+  }, [user])
+
   const changeToken = useCallback(() => {
     localStorage.removeItem('hc_github_token')
     setToken(null)
@@ -79,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, needsToken, loggingIn, login, logout, submitToken, changeToken }}>
+    <AuthContext.Provider value={{ user, token, needsToken, loggingIn, login, logout, submitToken, changeToken, updateGistId }}>
       {children}
     </AuthContext.Provider>
   )

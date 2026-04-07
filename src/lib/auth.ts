@@ -35,15 +35,23 @@ async function hashCode(code: string): Promise<string> {
 // ============ Storage ============
 const STORAGE_KEY_PROFILE = 'hc_profile'
 const STORAGE_KEY_TOKEN = 'hc_github_token'
+const STORAGE_KEY_GIST_OVERRIDE = 'hc_gist_override_'
 
 export function getStoredProfile(): UserProfile | null {
   const id = localStorage.getItem(STORAGE_KEY_PROFILE)
   if (id && PROFILES[id]) {
     const { codeHash: _, ...profile } = PROFILES[id]
+    const override = localStorage.getItem(STORAGE_KEY_GIST_OVERRIDE + id)
+    if (override) profile.gistId = override
     return profile
   }
   return null
 }
+
+export function setGistIdOverride(userId: string, gistId: string) {
+  localStorage.setItem(STORAGE_KEY_GIST_OVERRIDE + userId, gistId)
+}
+
 
 export function getCachedToken(): string | null {
   return localStorage.getItem(STORAGE_KEY_TOKEN)
@@ -67,6 +75,8 @@ export async function login(code: string): Promise<{
     if (profileData.codeHash !== hash) continue
 
     const { codeHash: _, ...profile } = profileData
+    const override = localStorage.getItem(STORAGE_KEY_GIST_OVERRIDE + profile.id)
+    if (override) profile.gistId = override
     localStorage.setItem(STORAGE_KEY_PROFILE, profile.id)
 
     // Token aus Firebase laden und entschlüsseln

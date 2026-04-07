@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useData } from '../contexts/DataContext'
 import Dashboard from './Dashboard'
@@ -28,9 +28,30 @@ const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
 ]
 
 export default function Layout() {
-  const { user, logout, changeToken } = useAuth()
+  const { user, logout, changeToken, updateGistId } = useAuth()
   const { data, loading, error, reload, lastSync } = useData()
   const [activeTab, setActiveTab] = useState<Tab>('dashboard')
+  const [showGistPrompt, setShowGistPrompt] = useState(false)
+  const [newGistId, setNewGistId] = useState('')
+  const [gistSaving, setGistSaving] = useState(false)
+
+  const isStale = useMemo(() => {
+    if (!data?.exportedAt) return false
+    const age = Date.now() - data.exportedAt
+    return age > 48 * 60 * 60 * 1000 // > 48h
+  }, [data?.exportedAt])
+
+  const handleGistUpdate = async () => {
+    const id = newGistId.trim()
+    if (!id || id.length < 10) return
+    setGistSaving(true)
+    updateGistId(id)
+    setNewGistId('')
+    setShowGistPrompt(false)
+    setGistSaving(false)
+    // Reload mit neuer Gist-ID
+    setTimeout(() => reload(), 100)
+  }
 
   if (loading) {
     return (
@@ -65,6 +86,65 @@ export default function Layout() {
   }
 
   if (!data) return null
+
+  const staleBanner = isStale && (
+    <div style={{
+      padding: '12px 16px', borderRadius: 'var(--radius-xs)',
+      background: 'linear-gradient(135deg, rgba(251,191,36,0.1), rgba(251,191,36,0.04))',
+      border: '1px solid rgba(251,191,36,0.2)',
+      fontSize: '13px', color: 'var(--text-secondary)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: showGistPrompt ? '10px' : '0' }}>
+        <span style={{ fontSize: '16px' }}>&#x26A0;&#xFE0F;</span>
+        <span style={{ flex: 1 }}>
+          Backup ist älter als 48h ({new Date(data.exportedAt).toLocaleDateString('de-DE')}).
+          Hat sich die Gist-ID geändert?
+        </span>
+        {!showGistPrompt && (
+          <button
+            onClick={() => setShowGistPrompt(true)}
+            style={{
+              fontSize: '12px', fontWeight: 700, padding: '4px 12px', borderRadius: '8px',
+              background: 'rgba(251,191,36,0.15)', color: '#fbbf24',
+              border: '1px solid rgba(251,191,36,0.3)', cursor: 'pointer', whiteSpace: 'nowrap',
+            }}
+          >
+            Neue ID eingeben
+          </button>
+        )}
+      </div>
+      {showGistPrompt && (
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input
+            type="text"
+            value={newGistId}
+            onChange={e => setNewGistId(e.target.value)}
+            placeholder="Neue Gist-ID einfügen..."
+            className="glass-input"
+            style={{ flex: 1, fontSize: '13px', padding: '8px 12px' }}
+          />
+          <button
+            onClick={handleGistUpdate}
+            disabled={gistSaving || newGistId.trim().length < 10}
+            className="accent-btn"
+            style={{ padding: '8px 16px', fontSize: '12px', whiteSpace: 'nowrap' }}
+          >
+            Speichern
+          </button>
+          <button
+            onClick={() => { setShowGistPrompt(false); setNewGistId('') }}
+            style={{
+              background: 'none', border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '8px', padding: '8px 12px', color: 'var(--text-tertiary)',
+              cursor: 'pointer', fontSize: '12px',
+            }}
+          >
+            Abbrechen
+          </button>
+        </div>
+      )}
+    </div>
+  )
 
   return (
     <div className="min-h-screen relative">
@@ -144,6 +224,7 @@ export default function Layout() {
 
         {/* Main Content */}
         <main className="desktop-main">
+          {staleBanner}
           <div key={activeTab} className="screen-enter">
             {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
             {activeTab === 'habits' && <HabitsView />}
@@ -178,6 +259,7 @@ export default function Layout() {
         </header>
 
         <main className="relative z-10 pb-24 px-4 py-4">
+          {staleBanner}
           <div key={activeTab} className="screen-enter">
             {activeTab === 'dashboard' && <Dashboard onNavigate={setActiveTab} />}
             {activeTab === 'habits' && <HabitsView />}
