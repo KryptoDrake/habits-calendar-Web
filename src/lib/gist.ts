@@ -6,6 +6,7 @@ export async function fetchGistBackup(token: string, gistId: string): Promise<Gi
       'Authorization': `token ${token}`,
       'Accept': 'application/vnd.github.v3+json',
     },
+    cache: 'no-store',
   })
 
   if (!res.ok) {
