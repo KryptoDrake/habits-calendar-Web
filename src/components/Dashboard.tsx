@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useData } from '../contexts/DataContext'
-import { todayKey, getStreakForHabit, formatDate, parseKey, getMonthName } from '../lib/helpers'
+import { todayKey, getStreakForHabit, formatDate, getMonthName } from '../lib/helpers'
 import { Target, Flame, ChevronLeft, ChevronRight } from 'lucide-react'
 
 type Tab = 'dashboard' | 'todos' | 'calendar' | 'habits' | 'essen'
