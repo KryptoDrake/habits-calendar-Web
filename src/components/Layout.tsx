@@ -6,6 +6,7 @@ import HabitsView from './HabitsView'
 import TodosView from './TodosView'
 import CalendarView from './CalendarView'
 import EssenView from './EssenView'
+import { ShaderBackground } from './ui/ShaderBackground'
 import {
   LayoutDashboard,
   CheckSquare,
@@ -148,9 +149,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen relative">
-      <div className="ambient-blob blob-1" />
-      <div className="ambient-blob blob-2" />
-      <div className="ambient-blob blob-3" />
+      <ShaderBackground />
       <div className="noise-overlay" />
 
       {/* ===== DESKTOP: Sidebar + Content ===== */}
