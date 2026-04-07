@@ -16,6 +16,7 @@ interface AuthState {
   login: (code: string) => Promise<'ok' | 'invalid' | 'no-token'>
   logout: () => void
   submitToken: (token: string) => Promise<boolean>
+  changeToken: () => void
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -63,6 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user])
 
+  const changeToken = useCallback(() => {
+    localStorage.removeItem('hc_github_token')
+    setToken(null)
+    setNeedsToken(true)
+  }, [])
+
   const logout = useCallback(() => {
     authLogout()
     loginCodeRef.current = ''
@@ -72,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, needsToken, loggingIn, login, logout, submitToken }}>
+    <AuthContext.Provider value={{ user, token, needsToken, loggingIn, login, logout, submitToken, changeToken }}>
       {children}
     </AuthContext.Provider>
   )

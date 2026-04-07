@@ -14,6 +14,7 @@ import {
   UtensilsCrossed,
   RefreshCw,
   LogOut,
+  KeyRound,
 } from 'lucide-react'
 
 type Tab = 'dashboard' | 'todos' | 'calendar' | 'habits' | 'essen'
@@ -27,7 +28,7 @@ const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
 ]
 
 export default function Layout() {
-  const { user, logout } = useAuth()
+  const { user, logout, changeToken } = useAuth()
   const { data, loading, error, reload, lastSync } = useData()
   const [activeTab, setActiveTab] = useState<Tab>('dashboard')
 
@@ -128,6 +129,9 @@ export default function Layout() {
               <button onClick={reload} className="sidebar-action-btn" title="Neu laden">
                 <RefreshCw className="w-4 h-4" />
               </button>
+              <button onClick={changeToken} className="sidebar-action-btn" title="Token ändern">
+                <KeyRound className="w-4 h-4" />
+              </button>
               <button onClick={logout} className="sidebar-action-btn" title="Ausloggen">
                 <LogOut className="w-4 h-4" />
               </button>
@@ -163,6 +167,9 @@ export default function Layout() {
           <div className="flex items-center gap-1">
             <button onClick={reload} style={{ color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
               <RefreshCw className="w-4 h-4" />
+            </button>
+            <button onClick={changeToken} style={{ color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }} title="Token ändern">
+              <KeyRound className="w-4 h-4" />
             </button>
             <button onClick={logout} style={{ color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
               <LogOut className="w-4 h-4" />
