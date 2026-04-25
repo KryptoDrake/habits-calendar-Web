@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { ShaderBackground } from './ui/ShaderBackground'
 
 export default function LoginScreen() {
   const { login, loggingIn } = useAuth()
@@ -27,7 +26,6 @@ export default function LoginScreen() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
-      <ShaderBackground />
       <div className="noise-overlay" />
 
       <div className="w-full max-w-sm space-y-8 relative z-10 screen-enter">
